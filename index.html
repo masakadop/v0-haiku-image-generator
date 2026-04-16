@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>俳句短冊メーカー</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎋 俳句短冊メーカー</h1>
+      <p class="subtitle">俳句を入力して、SNS投稿用の短冊画像を作成しましょう</p>
+    </header>
+
+    <!-- Step 1: 俳句入力フォーム -->
+    <section id="input-section" class="card">
+      <h2>📝 俳句を入力</h2>
+      <div class="form-group">
+        <label for="line1">上の句（5文字）</label>
+        <input type="text" id="line1" maxlength="10" placeholder="例：古池や">
+        <span class="char-count" id="count1">0文字</span>
+      </div>
+      <div class="form-group">
+        <label for="line2">中の句（7文字）</label>
+        <input type="text" id="line2" maxlength="12" placeholder="例：蛙飛び込む">
+        <span class="char-count" id="count2">0文字</span>
+      </div>
+      <div class="form-group">
+        <label for="line3">下の句（5文字）</label>
+        <input type="text" id="line3" maxlength="10" placeholder="例：水の音">
+        <span class="char-count" id="count3">0文字</span>
+      </div>
+      <div class="form-group">
+        <label for="author">作者名（任意）</label>
+        <input type="text" id="author" maxlength="20" placeholder="例：松尾芭蕉">
+      </div>
+      <button id="create-btn" class="btn primary">短冊を作成する →</button>
+    </section>
+
+    <!-- Step 2: 画像プレビュー・編集 -->
+    <section id="preview-section" class="card hidden">
+      <h2>🎨 短冊をカスタマイズ</h2>
+      
+      <div class="color-selector">
+        <label>背景色を選択</label>
+        <div class="color-options">
+          <button class="color-btn active" data-color="#f5e6d3" style="background: #f5e6d3" title="生成り"></button>
+          <button class="color-btn" data-color="#d4e5d7" style="background: #d4e5d7" title="若草"></button>
+          <button class="color-btn" data-color="#e8d4d4" style="background: #e8d4d4" title="桜"></button>
+          <button class="color-btn" data-color="#d4dae8" style="background: #d4dae8" title="藤"></button>
+          <button class="color-btn" data-color="#f5e1c8" style="background: #f5e1c8" title="山吹"></button>
+          <button class="color-btn" data-color="#c8e5f5" style="background: #c8e5f5" title="空"></button>
+          <button class="color-btn" data-color="#ffffff" style="background: #ffffff; border: 1px solid #ccc" title="白"></button>
+          <button class="color-btn" data-color="#2d2d2d" style="background: #2d2d2d" title="墨"></button>
+        </div>
+      </div>
+
+      <div class="preview-container">
+        <canvas id="tanzaku-canvas" width="400" height="700"></canvas>
+      </div>
+
+      <div class="actions">
+        <button id="back-btn" class="btn secondary">← 戻って編集</button>
+        <button id="download-btn" class="btn primary">📥 画像をダウンロード</button>
+      </div>
+    </section>
+
+    <!-- Step 3: SNS投稿 -->
+    <section id="share-section" class="card hidden">
+      <h2>📤 SNSに投稿</h2>
+      <p class="share-info">画像をダウンロードしたら、お好きなSNSに投稿してください！</p>
+      
+      <div class="sns-buttons">
+        <a href="#" id="twitter-share" class="sns-btn twitter" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+          X (Twitter)
+        </a>
+        <a href="#" id="line-share" class="sns-btn line" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.349 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+          </svg>
+          LINE
+        </a>
+        <a href="#" id="facebook-share" class="sns-btn facebook" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          Facebook
+        </a>
+      </div>
+
+      <button id="restart-btn" class="btn secondary">🔄 新しい俳句を作る</button>
+    </section>
+
+    <footer>
+      <p>俳句短冊メーカー | 五七五の心を画像に</p>
+    </footer>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
