@@ -29,6 +29,63 @@ let haikuData = {
   line3: '',
   author: ''
 };
+const validColors = Array.from(colorBtns).map((btn) => btn.dataset.color);
+
+function updateCharCounts() {
+  count1.textContent = `${line1Input.value.length}文字`;
+  count2.textContent = `${line2Input.value.length}文字`;
+  count3.textContent = `${line3Input.value.length}文字`;
+}
+
+function setActiveColor(color) {
+  const resolvedColor = validColors.includes(color) ? color : '#f5e6d3';
+  currentColor = resolvedColor;
+  colorBtns.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.color === resolvedColor);
+  });
+}
+
+function buildShareUrl() {
+  const shareUrl = new URL(window.location.href);
+  shareUrl.search = '';
+  shareUrl.searchParams.set('l1', haikuData.line1);
+  shareUrl.searchParams.set('l2', haikuData.line2);
+  shareUrl.searchParams.set('l3', haikuData.line3);
+  shareUrl.searchParams.set('a', haikuData.author);
+  shareUrl.searchParams.set('c', currentColor);
+  return shareUrl.toString();
+}
+
+function syncUrlWithState() {
+  const shareUrl = buildShareUrl();
+  window.history.replaceState({}, '', shareUrl);
+}
+
+function initializeFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const line1 = params.get('l1') || '';
+  const line2 = params.get('l2') || '';
+  const line3 = params.get('l3') || '';
+  const author = params.get('a') || '';
+  const color = params.get('c') || '#f5e6d3';
+
+  const hasSharedData = Boolean(line1 || line2 || line3 || author);
+  if (!hasSharedData) return;
+
+  line1Input.value = line1;
+  line2Input.value = line2;
+  line3Input.value = line3;
+  authorInput.value = author;
+  updateCharCounts();
+
+  haikuData = { line1, line2, line3, author };
+  setActiveColor(color);
+  drawTanzaku();
+
+  inputSection.classList.add('hidden');
+  previewSection.classList.remove('hidden');
+  shareSection.classList.remove('hidden');
+}
 
 // Character count updates
 line1Input.addEventListener('input', () => {
@@ -58,6 +115,7 @@ createBtn.addEventListener('click', () => {
   }
 
   drawTanzaku();
+  syncUrlWithState();
   inputSection.classList.add('hidden');
   previewSection.classList.remove('hidden');
   shareSection.classList.remove('hidden');
@@ -78,10 +136,11 @@ backBtn.addEventListener('click', () => {
 // Color selection
 colorBtns.forEach(btn => {
   btn.addEventListener('click', () => {
-    colorBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentColor = btn.dataset.color;
+    setActiveColor(btn.dataset.color);
     drawTanzaku();
+    if (!previewSection.classList.contains('hidden')) {
+      syncUrlWithState();
+    }
   });
 });
 
@@ -106,6 +165,10 @@ restartBtn.addEventListener('click', () => {
   previewSection.classList.add('hidden');
   shareSection.classList.add('hidden');
   inputSection.classList.remove('hidden');
+  setActiveColor('#f5e6d3');
+  currentColor = '#f5e6d3';
+  haikuData = { line1: '', line2: '', line3: '', author: '' };
+  window.history.replaceState({}, '', window.location.pathname);
   
   inputSection.scrollIntoView({ behavior: 'smooth' });
 });
@@ -258,19 +321,21 @@ document.getElementById('twitter-share').addEventListener('click', (e) => {
   e.preventDefault();
   const haiku = `${haikuData.line1} ${haikuData.line2} ${haikuData.line3}`;
   const text = encodeURIComponent(`${haiku}\n\n#俳句 #haiku #俳句短冊メーカー`);
-  window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+  const url = encodeURIComponent(buildShareUrl());
+  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
 });
 
 document.getElementById('line-share').addEventListener('click', (e) => {
   e.preventDefault();
   const haiku = `${haikuData.line1} ${haikuData.line2} ${haikuData.line3}`;
   const text = encodeURIComponent(haiku);
-  window.open(`https://social-plugins.line.me/lineit/share?text=${text}`, '_blank');
+  const url = encodeURIComponent(buildShareUrl());
+  window.open(`https://social-plugins.line.me/lineit/share?text=${text}&url=${url}`, '_blank');
 });
 
 document.getElementById('facebook-share').addEventListener('click', (e) => {
   e.preventDefault();
-  window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank');
+  window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(buildShareUrl()), '_blank');
 });
 
 // Font loading check - redraw when font is loaded
@@ -279,3 +344,5 @@ document.fonts.ready.then(() => {
     drawTanzaku();
   }
 });
+
+initializeFromQuery();
